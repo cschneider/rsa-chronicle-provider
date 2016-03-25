@@ -18,33 +18,41 @@
  */
 package org.apache.aries.rsa.provider.chronicle;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 import net.openhft.chronicle.bytes.Bytes;
+import net.openhft.chronicle.queue.ChronicleQueue;
 import net.openhft.chronicle.queue.ExcerptAppender;
 
 public class ChronicleInvocationHandler implements InvocationHandler {
     private ExcerptAppender appender;
+    private ChronicleQueue queue;
 
     public ChronicleInvocationHandler(ClassLoader cl, String queueName) {
-        this.appender = QueueHelper.createQueue(queueName).createAppender();
+        queue = QueueHelper.createQueue(queueName);
+        this.appender = queue.createAppender();
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         final Bytes<ByteBuffer> message = Bytes.elasticByteBuffer();
+        message.clear();
+        writeToMessage(method, args, message);
+        appender.writeBytes(message);
+        return null;
+    }
+
+    private void writeToMessage(Method method, Object[] args, final Bytes<ByteBuffer> message)
+        throws IOException {
         try (
             ObjectOutputStream out = new ObjectOutputStream(message.outputStream())
             ) {
             out.writeObject(method.getName());
             out.writeObject(args);
-            out.flush();
-            appender.writeBytes(message);
-            message.clear();
-            return null;
         } catch (Exception  e) {
             throw new RuntimeException("Error calling " + method.getName(), e);
         }

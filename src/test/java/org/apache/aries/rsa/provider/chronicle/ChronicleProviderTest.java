@@ -25,8 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.aries.rsa.provider.tcp.myservice.MyService;
-import org.apache.aries.rsa.provider.tcp.myservice.MyServiceImpl;
+import org.apache.aries.rsa.provider.chronicle.myservice.MyService;
+import org.apache.aries.rsa.provider.chronicle.myservice.MyServiceImpl;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.util.EndpointHelper;
 import org.easymock.EasyMock;
@@ -36,10 +36,11 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 public class ChronicleProviderTest {
-
-    private static final int NUM_CALLS = 1000000;
+    // For good performance resutls use at least 100.000 calls
+    private static final int NUM_CALLS = 1000;
     private MyService myServiceProxy;
     private Endpoint ep;
+    private MyServiceImpl myService;
     
     @Before
     public void createServerAndProxy() {
@@ -47,7 +48,7 @@ public class ChronicleProviderTest {
         ChronicleProvider provider = new ChronicleProvider();
         Map<String, Object> props = new HashMap<String, Object>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
-        MyService myService = new MyServiceImpl();
+        myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
         myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(), 
@@ -77,17 +78,13 @@ public class ChronicleProviderTest {
     }
 
     private void runPerfTest(final MyService myServiceProxy2) throws InterruptedException {
-        StringBuilder msg = new StringBuilder();
-        for (int c = 0; c < 1; c++) {
-            msg.append("testing123");
-        }
-        final String msg2 = msg.toString();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        final String msg = createMessage();
+        ExecutorService executor = Executors.newFixedThreadPool(1);
         Runnable task = new Runnable() {
             
             @Override
             public void run() {
-                myServiceProxy2.callOneWay(msg2);;
+                myServiceProxy2.callOneWay(msg);
             }
         };
         long start = System.currentTimeMillis();
@@ -98,5 +95,13 @@ public class ChronicleProviderTest {
         executor.awaitTermination(100, TimeUnit.SECONDS);
         long tps = NUM_CALLS * 1000 / (System.currentTimeMillis() - start);
         System.out.println(tps + " tps");
+    }
+
+    private String createMessage() {
+        StringBuilder msg = new StringBuilder();
+        for (int c = 0; c < 1; c++) {
+            msg.append("testing123");
+        }
+        return msg.toString();
     }
 }

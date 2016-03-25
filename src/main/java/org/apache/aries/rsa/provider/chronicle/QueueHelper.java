@@ -9,17 +9,16 @@ import org.osgi.framework.Constants;
 
 import net.openhft.chronicle.queue.ChronicleQueue;
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder;
+import net.openhft.chronicle.wire.WireType;
 
 public class QueueHelper {
-    public static String getqueueName(Map<String, Object> effectiveProperties) {
-        List<String> ifaces = StringPlus.normalize(effectiveProperties.get(Constants.OBJECTCLASS));
-        return ifaces.iterator().next();
-    }
-
     public static ChronicleQueue createQueue(String queueName) {
         String tempDir = System.getProperty("java.io.tmpdir");
-        File queueDir = new File(tempDir, queueName);
+        File rsaDir = new File(tempDir, "rsa");
+        rsaDir.mkdirs();
+        File queueDir = new File(rsaDir, queueName);
         queueDir.mkdirs();
-        return SingleChronicleQueueBuilder.binary(queueDir).build();
+        return new SingleChronicleQueueBuilder(queueDir).wireType(WireType.BINARY).build();
     }
+    
 }

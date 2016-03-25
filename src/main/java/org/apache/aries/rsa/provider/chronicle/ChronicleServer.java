@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,6 @@ import net.openhft.chronicle.queue.ExcerptTailer;
 
 public class ChronicleServer implements Closeable, Runnable {
     private Logger log = LoggerFactory.getLogger(ChronicleServer.class);
-    private ServerSocket serverSocket;
     private Object service;
     private boolean running;
     private ExecutorService executor;
@@ -60,7 +58,7 @@ public class ChronicleServer implements Closeable, Runnable {
         while (running) {
             try {
                 if (!tailer.readBytes(message)) {
-                    return;
+                    continue;
                 }
                 try (
                     ObjectInputStream ois = new LoaderObjectInputStream(message.inputStream(), serviceCL)

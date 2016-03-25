@@ -1,0 +1,2 @@
+Private-Package: org.apache.aries.rsa.provider.chronicle
+Bundle-Activator: org.apache.aries.rsa.provider.chronicle.Activator

@@ -16,15 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.provider.tcp.myservice;
+package org.apache.aries.rsa.provider.chronicle.myservice;
 
-import javax.jws.Oneway;
+public class MyServiceImpl implements MyService {
+    int oneWayCalls = 0;
 
-public interface MyService {
-    String echo(String msg);
-    void call(String msg);
+    @Override
+    public String echo(String msg) {
+        return msg;
+        
+    }
 
-    // Oneway not yet supported
-    @Oneway
-    void callOneWay(String msg);
+    @Override
+    public void call(String msg) {
+        oneWayCalls++;
+    }
+
+    @Override
+    public void callOneWay(String msg) {
+        oneWayCalls++;
+    }
+
+    public int getOneWayCalls() {
+        return oneWayCalls;
+    }
 }

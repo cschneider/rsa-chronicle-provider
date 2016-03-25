@@ -19,9 +19,13 @@
 package org.apache.aries.rsa.provider.chronicle;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.aries.rsa.spi.Endpoint;
+import org.apache.aries.rsa.util.StringPlus;
+import org.osgi.framework.Constants;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
@@ -30,12 +34,14 @@ import net.openhft.chronicle.queue.ChronicleQueue;
 public class ChronicleEndpoint implements Endpoint {
     private EndpointDescription epd;
     private ChronicleServer server;
+    private ChronicleQueue queue;
     
     public ChronicleEndpoint(Object service, Map<String, Object> effectiveProperties) {
-        String queueName = QueueHelper.getqueueName(effectiveProperties);
-        ChronicleQueue queue = QueueHelper.createQueue(queueName);
+        List<String> ifaces = StringPlus.normalize(effectiveProperties.get(Constants.OBJECTCLASS));
+        String queueName = UUID.randomUUID().toString();
+        queue = QueueHelper.createQueue(queueName);
         server = new ChronicleServer(service, queue);
-        String endpointId = String.format("chronicle://%s", queueName);
+        String endpointId = String.format("chronicle://localhost/%s", queueName);
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
         this.epd = new EndpointDescription(effectiveProperties);
@@ -60,6 +66,7 @@ public class ChronicleEndpoint implements Endpoint {
 
     @Override
     public void close() throws IOException {
+        queue.close();
         server.close();
     }
 }

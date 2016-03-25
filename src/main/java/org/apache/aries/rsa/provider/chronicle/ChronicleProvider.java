@@ -60,7 +60,7 @@ public class ChronicleProvider implements DistributionProvider {
         throws IntentUnsatisfiedException {
         try {
             URI address = new URI(endpoint.getId());
-            InvocationHandler handler = new ChronicleInvocationHandler(cl, address.getPath());
+            InvocationHandler handler = new ChronicleInvocationHandler(cl, address.getPath().substring(1));
             return Proxy.newProxyInstance(cl, interfaces, handler);
         } catch (Exception e) {
             throw new RuntimeException(e);
