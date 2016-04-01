@@ -16,3 +16,11 @@ install -s  mvn:net.openhft/affinity/3.0.3
 install -s  mvn:net.openhft/chronicle-wire/1.3.7
 ```
 
+Add these packages to the system bundles exports in config.properties in karaf
+```
+    sun.misc, \
+    sun.reflect, \
+    sun.nio.ch, \
+    com.sun.jna, \
+    com.sun.jna.ptr, \
+```
